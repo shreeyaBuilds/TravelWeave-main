@@ -147,7 +147,7 @@ export const TripInputForm: React.FC<TripInputFormProps> = ({
             <MapPin className="w-8 h-8 text-white" />
           </div>
           <h1 className="text-3xl font-bold text-gray-900 mb-2">
-            Travel Planner
+            TripWeave
           </h1>
           <p className="text-gray-600">
             Generate your perfect itinerary in minutes
