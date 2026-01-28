@@ -20,7 +20,12 @@ const INITIAL_FORM_STATE: TripInput = {
   locations: [],
   startDate: '',
   endDate: '',
-  budget: 'Medium',
+  budget: {
+    min: 100,
+    max: 500,
+    currency: 'USD',
+    currencySymbol: '$'
+  },
   travelStyle: 'Solo'
 };
 
@@ -59,10 +64,16 @@ export const TripInputForm: React.FC<TripInputFormProps> = ({
   };
 
   const handleCountryChange = (countryCode: string) => {
+    const country = getCountryByCode(countryCode);
     setFormData({
       ...formData,
       country: countryCode,
-      locations: []
+      locations: [],
+      budget: {
+        ...formData.budget,
+        currency: country?.currency || 'USD',
+        currencySymbol: country?.currencySymbol || '$'
+      }
     });
     setSelectedState('');
     setShowLocationDropdown(false);
@@ -114,7 +125,12 @@ export const TripInputForm: React.FC<TripInputFormProps> = ({
       locations: ['Goa'],
       startDate: startDate.toISOString().split('T')[0],
       endDate: endDate.toISOString().split('T')[0],
-      budget: 'Medium',
+      budget: {
+        min: 5000,
+        max: 15000,
+        currency: 'INR',
+        currencySymbol: '₹'
+      },
       travelStyle: 'Couple'
     });
   };
@@ -302,26 +318,75 @@ export const TripInputForm: React.FC<TripInputFormProps> = ({
             </div>
           </div>
 
-          {/* Budget */}
+          {/* Budget Range */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
               <DollarSign className="w-4 h-4 inline mr-1" />
-              Budget
+              Budget Per Person ({formData.budget.currencySymbol} {formData.budget.currency})
             </label>
-            <select
-              value={formData.budget}
-              onChange={(e) =>
-                setFormData({
-                  ...formData,
-                  budget: e.target.value as TripInput['budget']
-                })
-              }
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg"
-            >
-              <option value="Low">Budget-friendly</option>
-              <option value="Medium">Moderate</option>
-              <option value="Luxury">Luxury</option>
-            </select>
+            <div className="space-y-4">
+              {/* Min Budget */}
+              <div>
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-sm text-gray-600">Minimum</span>
+                  <span className="font-semibold text-gray-900">
+                    {formData.budget.currencySymbol}{formData.budget.min.toLocaleString()}
+                  </span>
+                </div>
+                <input
+                  type="range"
+                  min="0"
+                  max="10000"
+                  step="50"
+                  value={formData.budget.min}
+                  onChange={(e) =>
+                    setFormData({
+                      ...formData,
+                      budget: {
+                        ...formData.budget,
+                        min: parseInt(e.target.value)
+                      }
+                    })
+                  }
+                  className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-blue-600"
+                />
+              </div>
+
+              {/* Max Budget */}
+              <div>
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-sm text-gray-600">Maximum</span>
+                  <span className="font-semibold text-gray-900">
+                    {formData.budget.currencySymbol}{formData.budget.max.toLocaleString()}
+                  </span>
+                </div>
+                <input
+                  type="range"
+                  min="0"
+                  max="10000"
+                  step="50"
+                  value={formData.budget.max}
+                  onChange={(e) =>
+                    setFormData({
+                      ...formData,
+                      budget: {
+                        ...formData.budget,
+                        max: parseInt(e.target.value)
+                      }
+                    })
+                  }
+                  className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-green-600"
+                />
+              </div>
+
+              {/* Budget Range Display */}
+              <div className="bg-blue-50 rounded-lg p-3 text-center">
+                <p className="text-sm text-gray-600">Budget Range</p>
+                <p className="text-lg font-bold text-blue-600">
+                  {formData.budget.currencySymbol}{formData.budget.min.toLocaleString()} - {formData.budget.currencySymbol}{formData.budget.max.toLocaleString()}
+                </p>
+              </div>
+            </div>
           </div>
 
           {/* Travel Style */}

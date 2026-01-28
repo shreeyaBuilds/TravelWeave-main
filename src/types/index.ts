@@ -1,9 +1,16 @@
+export interface BudgetRange {
+  min: number;
+  max: number;
+  currency: string;
+  currencySymbol: string;
+}
+
 export interface TripInput {
   country: string;
   locations: string[];
   startDate: string;
   endDate: string;
-  budget: 'Low' | 'Medium' | 'Luxury';
+  budget: BudgetRange;
   travelStyle: 'Solo' | 'Couple' | 'Family' | 'Group';
 }
 

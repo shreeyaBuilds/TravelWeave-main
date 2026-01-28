@@ -1,7 +1,8 @@
 import React from 'react';
-import { Share2, MapPin, Clock, Utensils, Lightbulb, ArrowLeft } from 'lucide-react';
+import { Share2, MapPin, Clock, Utensils, Lightbulb, ArrowLeft, Download } from 'lucide-react';
 import { Itinerary } from '../types';
 import { getCountryByCode } from '../data/locations';
+import { generateItineraryPDF } from '../services/pdfService';
 
 interface ItineraryResultsProps {
   itinerary: Itinerary;
@@ -34,13 +35,22 @@ export const ItineraryResults: React.FC<ItineraryResultsProps> = ({
               <ArrowLeft className="w-4 h-4" />
               Back
             </button>
-            <button
-              onClick={onShare}
-              className="flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors"
-            >
-              <Share2 className="w-4 h-4" />
-              Share Itinerary
-            </button>
+            <div className="flex gap-2">
+              <button
+                onClick={() => generateItineraryPDF(itinerary)}
+                className="flex items-center gap-2 bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors"
+              >
+                <Download className="w-4 h-4" />
+                Download PDF
+              </button>
+              <button
+                onClick={onShare}
+                className="flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors"
+              >
+                <Share2 className="w-4 h-4" />
+                Share
+              </button>
+            </div>
           </div>
         </div>
       </div>
@@ -60,7 +70,9 @@ export const ItineraryResults: React.FC<ItineraryResultsProps> = ({
             </div>
             <div className="bg-green-50 rounded-lg p-3">
               <div className="font-medium text-green-900">Budget</div>
-              <div className="text-green-700">{tripInput.budget}</div>
+              <div className="text-green-700">
+                {tripInput.budget.currencySymbol}{tripInput.budget.min.toLocaleString()} - {tripInput.budget.currencySymbol}{tripInput.budget.max.toLocaleString()} {tripInput.budget.currency}
+              </div>
             </div>
             <div className="bg-purple-50 rounded-lg p-3">
               <div className="font-medium text-purple-900">Style</div>
@@ -145,16 +157,25 @@ export const ItineraryResults: React.FC<ItineraryResultsProps> = ({
         </div>
 
         {/* Bottom CTA */}
-        <div className="mt-8 text-center">
-          <button
-            onClick={onShare}
-            className="bg-gradient-to-r from-blue-600 to-green-600 text-white px-8 py-4 rounded-xl font-semibold text-lg hover:from-blue-700 hover:to-green-700 transition-all duration-200 transform hover:scale-105 shadow-lg"
-          >
-            <Share2 className="w-5 h-5 inline mr-2" />
-            Share This Itinerary
-          </button>
-          <p className="text-sm text-gray-500 mt-2">
-            Generate a shareable link for your group
+        <div className="mt-8 text-center space-y-4">
+          <div className="flex gap-4 justify-center flex-wrap">
+            <button
+              onClick={() => generateItineraryPDF(itinerary)}
+              className="bg-gradient-to-r from-green-600 to-emerald-600 text-white px-8 py-4 rounded-xl font-semibold text-lg hover:from-green-700 hover:to-emerald-700 transition-all duration-200 transform hover:scale-105 shadow-lg"
+            >
+              <Download className="w-5 h-5 inline mr-2" />
+              Download PDF
+            </button>
+            <button
+              onClick={onShare}
+              className="bg-gradient-to-r from-blue-600 to-cyan-600 text-white px-8 py-4 rounded-xl font-semibold text-lg hover:from-blue-700 hover:to-cyan-700 transition-all duration-200 transform hover:scale-105 shadow-lg"
+            >
+              <Share2 className="w-5 h-5 inline mr-2" />
+              Share Itinerary
+            </button>
+          </div>
+          <p className="text-sm text-gray-500">
+            Download your itinerary or share it with your group
           </p>
         </div>
       </div>
