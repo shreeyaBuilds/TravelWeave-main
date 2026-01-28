@@ -1,7 +1,13 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { MapPin, Calendar, DollarSign, Users, Sparkles, X } from 'lucide-react';
 import { TripInput } from '../types';
-import { COUNTRIES, getCountryByCode } from '../data/countries';
+import {
+  COUNTRIES_DATA,
+  getCountryByCode,
+  getStatesByCountry,
+  getCitiesByState,
+  getCitiesByCountry
+} from '../data/locations';
 
 interface TripInputFormProps {
   onSubmit: (tripInput: TripInput) => void;
@@ -23,6 +29,7 @@ export const TripInputForm: React.FC<TripInputFormProps> = ({
   isLoading
 }) => {
   const [formData, setFormData] = useState<TripInput>(INITIAL_FORM_STATE);
+  const [selectedState, setSelectedState] = useState('');
   const [showLocationDropdown, setShowLocationDropdown] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
@@ -38,7 +45,11 @@ export const TripInputForm: React.FC<TripInputFormProps> = ({
   }, []);
 
   const selectedCountry = getCountryByCode(formData.country);
-  const availableLocations = selectedCountry?.locations || [];
+  const countryHasStates = selectedCountry?.states && selectedCountry.states.length > 0;
+  const availableStates = countryHasStates ? getStatesByCountry(formData.country) : [];
+  const availableCities = countryHasStates
+    ? (selectedState ? getCitiesByState(formData.country, selectedState) : [])
+    : getCitiesByCountry(formData.country);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -53,6 +64,17 @@ export const TripInputForm: React.FC<TripInputFormProps> = ({
       country: countryCode,
       locations: []
     });
+    setSelectedState('');
+    setShowLocationDropdown(false);
+  };
+
+  const handleStateChange = (stateName: string) => {
+    setSelectedState(stateName);
+    setFormData({
+      ...formData,
+      locations: []
+    });
+    setShowLocationDropdown(false);
   };
 
   const toggleLocation = (location: string) => {
@@ -74,6 +96,7 @@ export const TripInputForm: React.FC<TripInputFormProps> = ({
   /* ✅ Reset handler */
   const handleReset = () => {
     setFormData(INITIAL_FORM_STATE);
+    setSelectedState('');
     setShowLocationDropdown(false);
   };
 
@@ -122,7 +145,7 @@ export const TripInputForm: React.FC<TripInputFormProps> = ({
           className="w-full mb-6 p-3 bg-gradient-to-r from-orange-400 to-pink-400 text-white rounded-lg font-medium hover:from-orange-500 hover:to-pink-500 transition-all duration-200 flex items-center justify-center gap-2"
         >
           <Sparkles className="w-4 h-4" />
-          Plan Your Travel For Goa
+          Try Example Trip
         </button>
 
         {/* Form */}
@@ -143,7 +166,7 @@ export const TripInputForm: React.FC<TripInputFormProps> = ({
               required
             >
               <option value="">Choose a country...</option>
-              {COUNTRIES.map(country => (
+              {COUNTRIES_DATA.map(country => (
                 <option key={country.code} value={country.code}>
                   {country.name}
                 </option>
@@ -151,14 +174,36 @@ export const TripInputForm: React.FC<TripInputFormProps> = ({
             </select>
           </div>
 
-          {/* Location Multi-Select */}
-          {formData.country && (
+          {/* State Selection (for countries with states) */}
+          {formData.country && countryHasStates && (
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Cities & States (Optional)
+                <MapPin className="w-4 h-4 inline mr-1" />
+                Select State/Province (Optional)
+              </label>
+              <select
+                value={selectedState}
+                onChange={(e) => handleStateChange(e.target.value)}
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+              >
+                <option value="">All States/Provinces</option>
+                {availableStates.map(state => (
+                  <option key={state.name} value={state.name}>
+                    {state.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+          )}
+
+          {/* City Multi-Select */}
+          {formData.country && availableCities.length > 0 && (
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Select Cities (Optional)
               </label>
 
-              {/* Selected Locations */}
+              {/* Selected Cities */}
               {formData.locations.length > 0 && (
                 <div className="flex flex-wrap gap-2 mb-2">
                   {formData.locations.map(location => (
@@ -179,7 +224,7 @@ export const TripInputForm: React.FC<TripInputFormProps> = ({
                 </div>
               )}
 
-              {/* Location Dropdown */}
+              {/* City Dropdown */}
               <div className="relative" ref={dropdownRef}>
                 <button
                   type="button"
@@ -188,28 +233,34 @@ export const TripInputForm: React.FC<TripInputFormProps> = ({
                 >
                   <span className="text-gray-600">
                     {formData.locations.length === 0
-                      ? 'Select locations (or leave empty for whole country)'
-                      : `${formData.locations.length} location${formData.locations.length > 1 ? 's' : ''} selected`}
+                      ? `Select cities ${countryHasStates && selectedState ? `in ${selectedState}` : '(or leave empty for whole country)'}`
+                      : `${formData.locations.length} city${formData.locations.length > 1 ? 'ies' : ''} selected`}
                   </span>
                   <span className="text-gray-400">▼</span>
                 </button>
 
                 {showLocationDropdown && (
                   <div className="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-lg max-h-60 overflow-y-auto">
-                    {availableLocations.map(location => (
-                      <label
-                        key={location}
-                        className="flex items-center px-4 py-2 hover:bg-gray-50 cursor-pointer"
-                      >
-                        <input
-                          type="checkbox"
-                          checked={formData.locations.includes(location)}
-                          onChange={() => toggleLocation(location)}
-                          className="w-4 h-4 text-blue-600 rounded focus:ring-2 focus:ring-blue-500"
-                        />
-                        <span className="ml-3 text-gray-700">{location}</span>
-                      </label>
-                    ))}
+                    {availableCities.length > 0 ? (
+                      availableCities.map(city => (
+                        <label
+                          key={city}
+                          className="flex items-center px-4 py-2 hover:bg-gray-50 cursor-pointer"
+                        >
+                          <input
+                            type="checkbox"
+                            checked={formData.locations.includes(city)}
+                            onChange={() => toggleLocation(city)}
+                            className="w-4 h-4 text-blue-600 rounded focus:ring-2 focus:ring-blue-500"
+                          />
+                          <span className="ml-3 text-gray-700">{city}</span>
+                        </label>
+                      ))
+                    ) : (
+                      <div className="px-4 py-3 text-gray-500 text-sm">
+                        {countryHasStates ? 'Select a state to see cities' : 'No cities available'}
+                      </div>
+                    )}
                   </div>
                 )}
               </div>

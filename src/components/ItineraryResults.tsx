@@ -1,7 +1,7 @@
 import React from 'react';
 import { Share2, MapPin, Clock, Utensils, Lightbulb, ArrowLeft } from 'lucide-react';
 import { Itinerary } from '../types';
-import { getCountryByCode } from '../data/countries';
+import { getCountryByCode } from '../data/locations';
 
 interface ItineraryResultsProps {
   itinerary: Itinerary;
