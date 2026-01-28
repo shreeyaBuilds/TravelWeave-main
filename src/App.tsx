@@ -16,24 +16,33 @@ function App() {
 
   // Check for shared itinerary on load
   useEffect(() => {
-    const urlParams = new URLSearchParams(window.location.search);
-    const shareId = urlParams.get('share');
-    
-    if (shareId) {
-      const sharedItinerary = ItineraryService.loadItinerary(shareId);
-      if (sharedItinerary) {
-        setCurrentItinerary(sharedItinerary);
-        setAppState('shared');
-        return;
-      }
-    }
+    const loadSharedItinerary = async () => {
+      const urlParams = new URLSearchParams(window.location.search);
+      const shareId = urlParams.get('share');
 
-    // Check for existing session itinerary
-    const sessionItinerary = ItineraryService.loadItinerary();
-    if (sessionItinerary) {
-      setCurrentItinerary(sessionItinerary);
-      setAppState('results');
-    }
+      if (shareId) {
+        setAppState('loading');
+        const sharedItinerary = await ItineraryService.loadItinerary(shareId);
+        if (sharedItinerary) {
+          setCurrentItinerary(sharedItinerary);
+          setAppState('shared');
+          return;
+        } else {
+          setAppState('input');
+          setErrorMessage('Shared itinerary not found');
+          return;
+        }
+      }
+
+      // Check for existing session itinerary
+      const sessionItinerary = await ItineraryService.loadItinerary();
+      if (sessionItinerary) {
+        setCurrentItinerary(sessionItinerary);
+        setAppState('results');
+      }
+    };
+
+    loadSharedItinerary();
   }, []);
 
   const handleTripSubmit = async (tripInput: TripInput) => {

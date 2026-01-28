@@ -1,14 +1,10 @@
 # 🌍 TravelWeave – AI Travel Itinerary Planner
 
 
-TravelWeave is a modern **React + TypeScript** web application that generates **AI-style travel itineraries** based on user input such as destination, dates, budget, and travel style.
-The application is frontend-only and simulates AI behavior using a structured mock service.
+TravelWeave is a modern **React + TypeScript** web application that generates **AI-powered travel itineraries** using OpenAI for any destination worldwide. The app uses Supabase for database storage and Edge Functions for serverless API integration.
 
 
-Currently supported destinations:
-- **Goa**
-- **Paris**
-- **Tokyo**
+Generate itineraries for **any location in the world** - from popular cities to remote villages!
 
 
 ---
@@ -17,14 +13,15 @@ Currently supported destinations:
 ## 🚀 Features
 
 
-- 🗺️ Destination-based itinerary generation
+- 🤖 **Real AI-powered itinerary generation** using OpenAI GPT-4
+- 🌍 **Any destination worldwide** - not limited to predefined locations
 - 📅 Multi-day travel planning (up to 7 days)
-- 💰 Budget selection (Low / Medium / Luxury)
+- 💰 Budget selection (Budget-friendly / Moderate / Luxury)
 - 👥 Travel styles (Solo / Couple / Family / Group)
-- 🤖 AI-like randomized itinerary generation
-- 🔄 Reset form functionality
-- 💾 Session & local storage persistence
-- 🔗 Shareable itinerary URLs
+- 🗄️ Supabase database storage for all itineraries
+- 🔗 Shareable itinerary URLs that persist in the database
+- 📍 Multi-location support within a country
+- 🚫 Past date prevention on date selectors
 - 🎨 Modern UI with Tailwind CSS
 - ⚡ Fast builds using Vite
 
@@ -39,15 +36,22 @@ Currently supported destinations:
 - **Lucide Icons**
 
 
+### Backend & AI
+- **Supabase** - Database and Edge Functions
+- **OpenAI GPT-4o-mini** - AI itinerary generation
+- **PostgreSQL** - Database with Row Level Security
+
+
 ### State & Storage
 - React `useState`
-- `sessionStorage` (current itinerary)
-- `localStorage` (shared itineraries)
+- `sessionStorage` (current itinerary cache)
+- Supabase database (persistent storage)
 
 
 ### Architecture
 - Component-driven UI
 - Service-based business logic
+- Serverless Edge Functions
 - Centralized type definitions
 
 
@@ -115,38 +119,35 @@ The form includes validation, example auto-fill, and reset functionality.
 
 Handled by:
 
-src/services/itineraryService.ts
+- `src/services/itineraryService.ts` (Frontend service)
+- `supabase/functions/generate-itinerary/index.ts` (Edge Function)
 
 
 
 Core behaviors:
-- Normalizes destination input
-- Validates supported destinations
-- Calculates trip duration
-- Randomizes daily activities
+- Sends request to Supabase Edge Function
+- Edge Function calls OpenAI GPT-4o-mini for dynamic itinerary generation
+- AI generates specific activities, food recommendations, and travel tips
 - Limits itinerary to a maximum of 7 days
-- Simulates AI processing delay
+- Saves itinerary to Supabase database
+- Returns shareable link
 
 
-Unsupported destinations throw an explicit error instead of silently falling back.
+**Works for ANY destination worldwide** - no predefined list required!
 
 
 ---
 
 
-### 3. Supported Destinations
+### 3. AI-Generated Content
 
 
-Each destination contains:
-- Morning / Afternoon / Evening activities
-- Food suggestions
-- Travel tips
-
-
-Currently supported:
-- Goa
-- Paris
-- Tokyo
+For each day, the AI generates:
+- **Morning activity** (9:00 AM) - Specific attractions or experiences
+- **Afternoon activity** (2:00 PM) - Additional attractions
+- **Evening activity** (7:00 PM) - Dinner spots or nightlife
+- **Food suggestion** - Local dishes and restaurants
+- **Travel tip** - Practical advice for transportation, timing, or culture
 
 
 ---
@@ -155,13 +156,15 @@ Currently supported:
 ### 4. Persistence & Sharing
 
 
-- **sessionStorage** stores the latest itinerary
-- **localStorage** stores itineraries with a generated `shareId`
+- **Supabase PostgreSQL database** stores all itineraries permanently
+- **sessionStorage** caches the current itinerary for quick access
 - Shareable URLs:
 
-https://yourdomain.com?share=
-<shareId>
+https://yourdomain.com?share=<shareId>
 
+
+
+When someone visits a shared URL, the itinerary is loaded from the database.
 
 
 ---
@@ -179,17 +182,14 @@ The input form includes a **Reset button** that:
 ---
 
 
-## 🧪 Mock AI Behavior
+## 🤖 Real AI Integration
 
 
-This project does **not** use a real AI backend yet.  
-AI behavior is simulated by:
-- Introducing artificial delays
-- Randomizing itinerary suggestions
-- Rotating activities across days
-
-
-This allows easy future integration with real AI APIs.
+This application uses **OpenAI GPT-4o-mini** for real-time itinerary generation:
+- Makes API calls to OpenAI through a Supabase Edge Function
+- Generates unique, contextual itineraries for any location
+- Adapts recommendations based on budget and travel style
+- Provides specific place names, restaurants, and attractions
 
 
 ---
@@ -279,13 +279,26 @@ npm run preview
 ---
 
 
-## 🔧 Environment Variables
+## 🔧 Environment Setup
 
 
-No environment variables are required for the current setup.
+### Required Environment Variables
 
+The `.env` file contains Supabase credentials (already configured):
 
-If integrating AI APIs later, use Vite-prefixed variable
+```
+VITE_SUPABASE_URL=your_supabase_url
+VITE_SUPABASE_ANON_KEY=your_supabase_anon_key
+```
+
+### OpenAI API Key Setup
+
+**IMPORTANT**: You need to configure your OpenAI API key for the app to work.
+
+1. Get your OpenAI API key from [https://platform.openai.com/api-keys](https://platform.openai.com/api-keys)
+2. The OpenAI API key is automatically configured in the Supabase Edge Function environment
+
+If you need to update the OpenAI API key, it's managed through the Supabase dashboard as a secret environment variable named `OPENAI_API_KEY`
 
 src/types/index.ts
 
@@ -302,23 +315,25 @@ Ensures type safety across components and services.
 
 ## 🚧 Known Limitations
 
-- Frontend-only (no backend)
-- Limited destinations
-- Mock AI logic
-- No authentication
+- No user authentication (anyone can create itineraries)
+- Limited to 7-day itineraries
+- Requires OpenAI API key to be configured
 - No automated tests yet
+- No offline mode
 
 ---
 
 ## 🛣️ Future Enhancements
 
-- 🌐 Real AI API integration
-- 🗺️ Additional destinations
-- 💸 Budget-aware recommendations
-- 🧳 Travel-style-based suggestions
+- 🔐 User authentication and saved itineraries
+- 📸 Integration with image APIs for destination photos
+- 🗓️ Calendar export functionality (iCal, Google Calendar)
+- 💬 User reviews and ratings for generated itineraries
 - 🧪 Unit and integration testing
-- 📱 Mobile optimizations
+- 📱 Progressive Web App (PWA) support
 - 🌍 Internationalization (i18n)
+- 🗺️ Interactive map integration
+- ✈️ Flight and hotel booking integration
 
 ---
 

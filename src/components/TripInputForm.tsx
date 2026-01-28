@@ -226,6 +226,7 @@ export const TripInputForm: React.FC<TripInputFormProps> = ({
               <input
                 type="date"
                 value={formData.startDate}
+                min={new Date().toISOString().split('T')[0]}
                 onChange={(e) =>
                   setFormData({ ...formData, startDate: e.target.value })
                 }
@@ -240,6 +241,7 @@ export const TripInputForm: React.FC<TripInputFormProps> = ({
               <input
                 type="date"
                 value={formData.endDate}
+                min={formData.startDate || new Date().toISOString().split('T')[0]}
                 onChange={(e) =>
                   setFormData({ ...formData, endDate: e.target.value })
                 }
