@@ -71,7 +71,10 @@ export const ItineraryResults: React.FC<ItineraryResultsProps> = ({
             <div className="bg-green-50 rounded-lg p-3">
               <div className="font-medium text-green-900">Budget</div>
               <div className="text-green-700">
-                {tripInput.budget.currencySymbol}{tripInput.budget.min.toLocaleString()} - {tripInput.budget.currencySymbol}{tripInput.budget.max.toLocaleString()} {tripInput.budget.currency}
+                {typeof tripInput.budget === 'string'
+                  ? tripInput.budget
+                  : `${tripInput.budget.currencySymbol}${tripInput.budget.min.toLocaleString()} - ${tripInput.budget.currencySymbol}${tripInput.budget.max.toLocaleString()} ${tripInput.budget.currency}`
+                }
               </div>
             </div>
             <div className="bg-purple-50 rounded-lg p-3">

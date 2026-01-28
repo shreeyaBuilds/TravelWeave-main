@@ -39,11 +39,11 @@ export const generateItineraryPDF = (itinerary: Itinerary): void => {
   doc.text(`Dates: ${startDate} - ${endDate}`, margin, yPosition);
   yPosition += 7;
 
-  doc.text(
-    `Budget: ${tripInput.budget.currencySymbol}${tripInput.budget.min.toLocaleString()} - ${tripInput.budget.currencySymbol}${tripInput.budget.max.toLocaleString()} ${tripInput.budget.currency}`,
-    margin,
-    yPosition
-  );
+  const budgetText = typeof tripInput.budget === 'string'
+    ? `Budget: ${tripInput.budget}`
+    : `Budget: ${tripInput.budget.currencySymbol}${tripInput.budget.min.toLocaleString()} - ${tripInput.budget.currencySymbol}${tripInput.budget.max.toLocaleString()} ${tripInput.budget.currency}`;
+
+  doc.text(budgetText, margin, yPosition);
   yPosition += 7;
 
   doc.text(`Travel Style: ${tripInput.travelStyle}`, margin, yPosition);

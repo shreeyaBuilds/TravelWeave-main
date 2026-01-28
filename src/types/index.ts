@@ -10,7 +10,7 @@ export interface TripInput {
   locations: string[];
   startDate: string;
   endDate: string;
-  budget: BudgetRange;
+  budget: BudgetRange | string;
   travelStyle: 'Solo' | 'Couple' | 'Family' | 'Group';
 }
 
