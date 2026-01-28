@@ -1,9 +1,16 @@
 export interface TripInput {
-  destination: string;
+  country: string;
+  locations: string[];
   startDate: string;
   endDate: string;
   budget: 'Low' | 'Medium' | 'Luxury';
   travelStyle: 'Solo' | 'Couple' | 'Family' | 'Group';
+}
+
+export interface Country {
+  code: string;
+  name: string;
+  locations: string[];
 }
 
 export interface ItineraryDay {

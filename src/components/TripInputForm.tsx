@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
-import { MapPin, Calendar, DollarSign, Users, Sparkles } from 'lucide-react';
+import React, { useState, useRef, useEffect } from 'react';
+import { MapPin, Calendar, DollarSign, Users, Sparkles, X } from 'lucide-react';
 import { TripInput } from '../types';
+import { COUNTRIES, getCountryByCode } from '../data/countries';
 
 interface TripInputFormProps {
   onSubmit: (tripInput: TripInput) => void;
@@ -9,7 +10,8 @@ interface TripInputFormProps {
 
 /* ✅ Initial form state (used for reset) */
 const INITIAL_FORM_STATE: TripInput = {
-  destination: '',
+  country: '',
+  locations: [],
   startDate: '',
   endDate: '',
   budget: 'Medium',
@@ -21,17 +23,58 @@ export const TripInputForm: React.FC<TripInputFormProps> = ({
   isLoading
 }) => {
   const [formData, setFormData] = useState<TripInput>(INITIAL_FORM_STATE);
+  const [showLocationDropdown, setShowLocationDropdown] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setShowLocationDropdown(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  const selectedCountry = getCountryByCode(formData.country);
+  const availableLocations = selectedCountry?.locations || [];
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (formData.destination && formData.startDate && formData.endDate) {
+    if (formData.country && formData.startDate && formData.endDate) {
       onSubmit(formData);
     }
+  };
+
+  const handleCountryChange = (countryCode: string) => {
+    setFormData({
+      ...formData,
+      country: countryCode,
+      locations: []
+    });
+  };
+
+  const toggleLocation = (location: string) => {
+    setFormData(prev => ({
+      ...prev,
+      locations: prev.locations.includes(location)
+        ? prev.locations.filter(l => l !== location)
+        : [...prev.locations, location]
+    }));
+  };
+
+  const removeLocation = (location: string) => {
+    setFormData(prev => ({
+      ...prev,
+      locations: prev.locations.filter(l => l !== location)
+    }));
   };
 
   /* ✅ Reset handler */
   const handleReset = () => {
     setFormData(INITIAL_FORM_STATE);
+    setShowLocationDropdown(false);
   };
 
   // ✅ Generic example (NOT forced to Goa)
@@ -43,18 +86,18 @@ export const TripInputForm: React.FC<TripInputFormProps> = ({
     const endDate = new Date(startDate);
     endDate.setDate(startDate.getDate() + 2);
 
-    setFormData((prev) => ({
-      ...prev,
-      destination: prev.destination || 'Goa',
+    setFormData({
+      country: 'india',
+      locations: ['Goa'],
       startDate: startDate.toISOString().split('T')[0],
       endDate: endDate.toISOString().split('T')[0],
       budget: 'Medium',
       travelStyle: 'Couple'
-    }));
+    });
   };
 
   const isFormValid =
-    formData.destination && formData.startDate && formData.endDate;
+    formData.country && formData.startDate && formData.endDate;
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-green-50 flex items-center justify-center p-4">
@@ -68,7 +111,7 @@ export const TripInputForm: React.FC<TripInputFormProps> = ({
             Travel Planner
           </h1>
           <p className="text-gray-600">
-            Generate your perfect itinerary for Goa/Tokyo/Paris in minutes
+            Generate your perfect itinerary in minutes
           </p>
         </div>
 
@@ -87,23 +130,91 @@ export const TripInputForm: React.FC<TripInputFormProps> = ({
           onSubmit={handleSubmit}
           className="bg-white rounded-2xl shadow-xl p-6 space-y-6"
         >
-          {/* Destination */}
+          {/* Country Selection */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
               <MapPin className="w-4 h-4 inline mr-1" />
-              Where are you going?
+              Select Country
             </label>
-            <input
-              type="text"
-              value={formData.destination}
-              onChange={(e) =>
-                setFormData({ ...formData, destination: e.target.value })
-              }
-              placeholder="e.g., Paris, Tokyo, Goa"
+            <select
+              value={formData.country}
+              onChange={(e) => handleCountryChange(e.target.value)}
               className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
               required
-            />
+            >
+              <option value="">Choose a country...</option>
+              {COUNTRIES.map(country => (
+                <option key={country.code} value={country.code}>
+                  {country.name}
+                </option>
+              ))}
+            </select>
           </div>
+
+          {/* Location Multi-Select */}
+          {formData.country && (
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Cities & States (Optional)
+              </label>
+
+              {/* Selected Locations */}
+              {formData.locations.length > 0 && (
+                <div className="flex flex-wrap gap-2 mb-2">
+                  {formData.locations.map(location => (
+                    <span
+                      key={location}
+                      className="inline-flex items-center gap-1 px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm"
+                    >
+                      {location}
+                      <button
+                        type="button"
+                        onClick={() => removeLocation(location)}
+                        className="hover:bg-blue-200 rounded-full p-0.5"
+                      >
+                        <X className="w-3 h-3" />
+                      </button>
+                    </span>
+                  ))}
+                </div>
+              )}
+
+              {/* Location Dropdown */}
+              <div className="relative" ref={dropdownRef}>
+                <button
+                  type="button"
+                  onClick={() => setShowLocationDropdown(!showLocationDropdown)}
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg text-left flex items-center justify-between hover:border-gray-400 transition-all"
+                >
+                  <span className="text-gray-600">
+                    {formData.locations.length === 0
+                      ? 'Select locations (or leave empty for whole country)'
+                      : `${formData.locations.length} location${formData.locations.length > 1 ? 's' : ''} selected`}
+                  </span>
+                  <span className="text-gray-400">▼</span>
+                </button>
+
+                {showLocationDropdown && (
+                  <div className="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-lg max-h-60 overflow-y-auto">
+                    {availableLocations.map(location => (
+                      <label
+                        key={location}
+                        className="flex items-center px-4 py-2 hover:bg-gray-50 cursor-pointer"
+                      >
+                        <input
+                          type="checkbox"
+                          checked={formData.locations.includes(location)}
+                          onChange={() => toggleLocation(location)}
+                          className="w-4 h-4 text-blue-600 rounded focus:ring-2 focus:ring-blue-500"
+                        />
+                        <span className="ml-3 text-gray-700">{location}</span>
+                      </label>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
 
           {/* Dates */}
           <div className="grid grid-cols-2 gap-4">

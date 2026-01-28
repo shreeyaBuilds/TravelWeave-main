@@ -59,6 +59,42 @@ const DESTINATIONS: DestinationsMap = {
     ]
   },
 
+  india: {
+    activities: {
+      morning: [
+        'Taj Mahal sunrise visit',
+        'Morning prayer at Ganges',
+        'Amber Fort exploration',
+        'City Palace tour'
+      ],
+      afternoon: [
+        'Local market shopping',
+        'Heritage temple visits',
+        'Cultural museum tour',
+        'Street food walk'
+      ],
+      evening: [
+        'Traditional dance performance',
+        'Sunset boat ride',
+        'Rooftop dinner with city views',
+        'Night bazaar shopping'
+      ]
+    },
+    food: [
+      'Butter chicken and naan',
+      'Biryani',
+      'Street chaat',
+      'Masala dosa',
+      'Lassi'
+    ],
+    tips: [
+      'Carry cash for small vendors',
+      'Dress modestly at religious sites',
+      'Bargain at local markets',
+      'Stay hydrated'
+    ]
+  },
+
   paris: {
     activities: {
       morning: [
@@ -92,6 +128,42 @@ const DESTINATIONS: DestinationsMap = {
       'Learn basic French phrases',
       'Validate metro tickets',
       'Tip 10% at restaurants'
+    ]
+  },
+
+  france: {
+    activities: {
+      morning: [
+        'Local café breakfast',
+        'Historic château visit',
+        'Village market stroll',
+        'Museum exploration'
+      ],
+      afternoon: [
+        'Vineyard wine tasting',
+        'Countryside cycling',
+        'Art gallery tour',
+        'Shopping at boutiques'
+      ],
+      evening: [
+        'French cuisine dinner',
+        'River walk at sunset',
+        'Live music at bistro',
+        'Night tour of monuments'
+      ]
+    },
+    food: [
+      'Fresh baguettes',
+      'Regional cheese platter',
+      'Duck confit',
+      'Crème brûlée',
+      'Local wine'
+    ],
+    tips: [
+      'Greet shopkeepers with Bonjour',
+      'Lunch is usually 12-2pm',
+      'Many places closed on Sunday',
+      'Keep small change handy'
     ]
   },
 
@@ -129,6 +201,42 @@ const DESTINATIONS: DestinationsMap = {
       'No tipping culture',
       'Carry cash always'
     ]
+  },
+
+  japan: {
+    activities: {
+      morning: [
+        'Temple and shrine visits',
+        'Traditional garden walk',
+        'Local fish market',
+        'Tea ceremony experience'
+      ],
+      afternoon: [
+        'Castle exploration',
+        'Shopping districts',
+        'Bullet train experience',
+        'Cultural museum tour'
+      ],
+      evening: [
+        'Traditional izakaya dinner',
+        'Karaoke night',
+        'Night temple illumination',
+        'Hot springs relaxation'
+      ]
+    },
+    food: [
+      'Authentic sushi and sashimi',
+      'Ramen and udon',
+      'Okonomiyaki',
+      'Matcha desserts',
+      'Sake tasting'
+    ],
+    tips: [
+      'Learn basic Japanese phrases',
+      'Remove shoes indoors',
+      'Respect queue culture',
+      'IC card for transport'
+    ]
   }
 };
 
@@ -137,7 +245,7 @@ const DESTINATIONS: DestinationsMap = {
 /* ---------------------------------- */
 
 const normalizeDestination = (input: string): string =>
-  input.toLowerCase().trim().split(',')[0];
+  input.toLowerCase().trim().split(',')[0].replace(/\s+/g, '');
 
 const randomFromArray = (arr: string[], seed: number): string =>
   arr[seed % arr.length];
@@ -168,16 +276,33 @@ export class ItineraryService {
     return Math.max(1, Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1);
   }
 
-  private static getDestinationData(destination: string): DestinationData {
-    const key = normalizeDestination(destination);
+  private static getDestinationData(tripInput: TripInput): DestinationData {
+    let searchKey = '';
 
-    if (!DESTINATIONS[key]) {
+    if (tripInput.locations.length > 0) {
+      const firstLocation = normalizeDestination(tripInput.locations[0]);
+      if (DESTINATIONS[firstLocation]) {
+        searchKey = firstLocation;
+      }
+    }
+
+    if (!searchKey) {
+      const countryKey = normalizeDestination(tripInput.country);
+      if (DESTINATIONS[countryKey]) {
+        searchKey = countryKey;
+      }
+    }
+
+    if (!searchKey) {
+      const locationNames = tripInput.locations.length > 0
+        ? tripInput.locations.join(', ')
+        : tripInput.country;
       throw new Error(
-        `Destination "${destination}" is not supported yet`
+        `No itinerary data available for "${locationNames}". Currently supported: Goa, Paris, Tokyo`
       );
     }
 
-    return DESTINATIONS[key];
+    return DESTINATIONS[searchKey];
   }
 
   /* ---------- Public API ---------- */
@@ -193,9 +318,7 @@ export class ItineraryService {
       tripInput.endDate
     );
 
-    const destinationData = this.getDestinationData(
-      tripInput.destination
-    );
+    const destinationData = this.getDestinationData(tripInput);
 
     const itineraryDays: ItineraryDay[] = [];
 

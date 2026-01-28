@@ -1,6 +1,7 @@
 import React from 'react';
 import { Share2, MapPin, Clock, Utensils, Lightbulb, ArrowLeft } from 'lucide-react';
 import { Itinerary } from '../types';
+import { getCountryByCode } from '../data/countries';
 
 interface ItineraryResultsProps {
   itinerary: Itinerary;
@@ -8,12 +9,17 @@ interface ItineraryResultsProps {
   onBack: () => void;
 }
 
-export const ItineraryResults: React.FC<ItineraryResultsProps> = ({ 
-  itinerary, 
-  onShare, 
-  onBack 
+export const ItineraryResults: React.FC<ItineraryResultsProps> = ({
+  itinerary,
+  onShare,
+  onBack
 }) => {
   const { tripInput, days } = itinerary;
+  const country = getCountryByCode(tripInput.country);
+
+  const destinationDisplay = tripInput.locations.length > 0
+    ? tripInput.locations.join(', ')
+    : country?.name || tripInput.country;
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-green-50">
@@ -44,7 +50,7 @@ export const ItineraryResults: React.FC<ItineraryResultsProps> = ({
         <div className="bg-white rounded-2xl shadow-lg p-6 mb-8">
           <div className="flex items-center gap-3 mb-4">
             <MapPin className="w-6 h-6 text-blue-600" />
-            <h1 className="text-3xl font-bold text-gray-900">{tripInput.destination}</h1>
+            <h1 className="text-3xl font-bold text-gray-900">{destinationDisplay}</h1>
           </div>
           
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
