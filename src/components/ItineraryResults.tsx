@@ -17,7 +17,7 @@ export const ItineraryResults: React.FC<ItineraryResultsProps> = ({
   const { tripInput, days } = itinerary;
   const country = getCountryByCode(tripInput.country);
 
-  const destinationDisplay = tripInput.locations.length > 0
+  const destinationDisplay = tripInput.locations && tripInput.locations.length > 0
     ? tripInput.locations.join(', ')
     : country?.name || tripInput.country;
 

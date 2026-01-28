@@ -279,7 +279,7 @@ export class ItineraryService {
   private static getDestinationData(tripInput: TripInput): DestinationData {
     let searchKey = '';
 
-    if (tripInput.locations.length > 0) {
+    if (tripInput.locations && tripInput.locations.length > 0) {
       const firstLocation = normalizeDestination(tripInput.locations[0]);
       if (DESTINATIONS[firstLocation]) {
         searchKey = firstLocation;
@@ -294,7 +294,7 @@ export class ItineraryService {
     }
 
     if (!searchKey) {
-      const locationNames = tripInput.locations.length > 0
+      const locationNames = tripInput.locations && tripInput.locations.length > 0
         ? tripInput.locations.join(', ')
         : tripInput.country;
       throw new Error(
