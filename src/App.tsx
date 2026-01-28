@@ -3,6 +3,7 @@ import { TripInputForm } from './components/TripInputForm';
 import { LoadingState } from './components/LoadingState';
 import { ItineraryResults } from './components/ItineraryResults';
 import { ShareModal } from './components/ShareModal';
+import { ErrorNotification } from './components/ErrorNotification';
 import { ItineraryService } from './services/itineraryService';
 import { TripInput, Itinerary, AppState } from './types';
 
@@ -11,6 +12,7 @@ function App() {
   const [currentItinerary, setCurrentItinerary] = useState<Itinerary | null>(null);
   const [showShareModal, setShowShareModal] = useState(false);
   const [shareUrl, setShareUrl] = useState('');
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   // Check for shared itinerary on load
   useEffect(() => {
@@ -36,7 +38,8 @@ function App() {
 
   const handleTripSubmit = async (tripInput: TripInput) => {
     setAppState('loading');
-    
+    setErrorMessage(null);
+
     try {
       const itinerary = await ItineraryService.generateItinerary(tripInput);
       ItineraryService.saveItinerary(itinerary);
@@ -45,7 +48,12 @@ function App() {
     } catch (error) {
       console.error('Failed to generate itinerary:', error);
       setAppState('input');
-      // In a real app, you'd show an error message here
+
+      const message = error instanceof Error
+        ? error.message
+        : 'Failed to generate itinerary. Please try again.';
+
+      setErrorMessage(message);
     }
   };
 
@@ -75,9 +83,9 @@ function App() {
   return (
     <>
       {appState === 'input' && (
-        <TripInputForm 
-          onSubmit={handleTripSubmit} 
-          isLoading={appState === 'loading'} 
+        <TripInputForm
+          onSubmit={handleTripSubmit}
+          isLoading={appState === 'loading'}
         />
       )}
 
@@ -95,6 +103,13 @@ function App() {
         <ShareModal
           shareUrl={shareUrl}
           onClose={() => setShowShareModal(false)}
+        />
+      )}
+
+      {errorMessage && (
+        <ErrorNotification
+          message={errorMessage}
+          onClose={() => setErrorMessage(null)}
         />
       )}
     </>
