@@ -50,6 +50,23 @@ Deno.serve(async (req: Request) => {
   }
 
   try {
+    // Validate API secret key
+    const apiKey = req.headers.get("x-api-key");
+    const validApiKey = Deno.env.get("API_SECRET_KEY");
+
+    if (!apiKey || apiKey !== validApiKey) {
+      return new Response(
+        JSON.stringify({ error: "Unauthorized: Invalid API key" }),
+        {
+          status: 401,
+          headers: {
+            ...corsHeaders,
+            "Content-Type": "application/json",
+          },
+        }
+      );
+    }
+
     const tripInput: TripInput = await req.json();
 
     const openaiApiKey = Deno.env.get("OPENAI_API_KEY");
