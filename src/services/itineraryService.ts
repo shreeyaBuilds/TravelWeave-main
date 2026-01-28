@@ -19,18 +19,12 @@ export class ItineraryService {
 
   static async generateItinerary(tripInput: TripInput): Promise<Itinerary> {
     const apiUrl = `${supabaseUrl}/functions/v1/generate-itinerary`;
-    const apiSecretKey = import.meta.env.VITE_API_SECRET_KEY;
-
-    if (!apiSecretKey) {
-      throw new Error('API secret key not configured');
-    }
 
     const response = await fetch(apiUrl, {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${supabaseAnonKey}`,
         'Content-Type': 'application/json',
-        'x-api-key': apiSecretKey,
       },
       body: JSON.stringify(tripInput),
     });
